@@ -4,6 +4,7 @@ using namespace std;
 
 int main() {
 	vec3 a(1, 2, 3);
+	std::cout << a.normalize() << std::endl;
 	vec3 b = -a;
 	vec3 c = +a;
 	system("pause");
