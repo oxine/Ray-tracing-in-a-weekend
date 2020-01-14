@@ -38,7 +38,12 @@ public:
 
 	inline void Normalize();
 	inline vec3 normalize()const;
+
+	static vec3 one;
+	static vec3 zero;
 };
+
+
 
 inline std::istream& operator>>(std::istream &is, vec3 &t) {
 	is >> t.e[0] >> t.e[1] >> t.e[2];
@@ -66,6 +71,10 @@ inline vec3 operator/(const vec3 &v1, const vec3 &v2) {
 }
 
 inline vec3 operator*(const vec3 &v1, float t) {
+	return vec3(v1.e[0] * t, v1.e[1] * t, v1.e[2] * t);
+}
+
+inline vec3 operator*(float t,const vec3 &v1) {
 	return vec3(v1.e[0] * t, v1.e[1] * t, v1.e[2] * t);
 }
 
@@ -127,7 +136,7 @@ inline vec3& vec3::operator/=(const float t) {
 	return *this;
 }
 
-inline vec3 normalize(vec3 v) {
+inline vec3 Normalize(vec3 v) {
 	return v / v.length();
 }
 
