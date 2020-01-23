@@ -29,7 +29,7 @@ int main() {
 			data[j*x * 3 + i * 3 + 1] = unsigned char(255.99f * col[1]);
 			data[j*x * 3 + i * 3 + 2] = unsigned char(255.99f * col[2]);
 		}
-	stbi_write_jpg("output.jpg", x, y, 3, data, 100);
+	stbi_write_jpg("..//output.jpg", x, y, 3, data, 100);
 	delete[] data;
 	system("pause");
 	return 0;
