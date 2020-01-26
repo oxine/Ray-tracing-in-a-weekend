@@ -83,7 +83,7 @@ inline vec3 operator/(const vec3 &v1, float t) {
 }
 
 inline float dot(const vec3 &v1, const vec3 &v2) {
-	return v1.e[0] * v2.e[0] + v1.e[1] + v2.e[1] + v1.e[2] * v2.e[2];
+	return v1.e[0] * v2.e[0] + v1.e[1] * v2.e[1] + v1.e[2] * v2.e[2];
 }
 
 inline vec3 cross(const vec3 &v1, const vec3 &v2) {
@@ -146,6 +146,6 @@ inline vec3 vec3::normalize() const {
 }
 
 inline void vec3::Normalize() {
-	float k = 1.0 / this->length();
+	float k = 1.0f / this->length();
 	e[0] *= k; e[1] *= k; e[2] *= k;
 }
