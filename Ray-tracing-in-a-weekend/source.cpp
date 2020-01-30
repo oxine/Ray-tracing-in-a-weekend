@@ -7,20 +7,26 @@ using namespace std;
 /*
 line-sphere intersection:https://en.wikipedia.org/wiki/Line-sphere_intersection
 */
-bool hit_sphere(const vec3& center, float radius, const ray& r) {
+float hit_sphere(const vec3& center, float radius, const ray& r) {
 	vec3 oc = r.Origin() - center;
 	float a = dot(r.Direction(), r.Direction());
 	float b = 2.0f * dot(r.Direction(), oc);
 	float c = dot(oc, oc) - radius*radius;
-	float delta = b * b - 4 * a * c;
-	return (delta >= 0);
+	float discriminate = b * b - 4 * a * c;
+	if (discriminate < 0)
+		return -1.0f;
+	else
+		return ( - b - sqrtf(discriminate)) /( 2.0f * a);//hit-point nearer to the screen
 }
 
 vec3 color(const ray& r) {
-	if (hit_sphere(vec3(0.0f, 0.0f, -1.0f), 0.5f, r))
-		return vec3(1, 0, 0);
+	float t = hit_sphere(vec3(0.0f, 0.0f, -1.0f), 0.5f, r);	
+	if (t > 0) {//now you can't hit the sphere behind you
+		vec3 N = Normalize(r.Point_on_ray(t) - vec3(0, 0, -1));//o + dl - c  it's a unit normal
+		return 0.5f*vec3(N.x()+1, N.y()+1, N.z()+1);//a map which makes[-1, 1] to[0, 1]
+	}
 	vec3 unit_direction = Normalize(r.Direction());
-	float t = 0.5f*(unit_direction.y() + 1.0f);//a map which makes [-1,1] to[0,1]
+	t = 0.5f*(unit_direction.y() + 1.0f);//a map as is mentioned above
 	return  (1.0f-t)*vec3::one+t*vec3(0.5f,0.7f,1.0f);//a simple liner lerp from white(1,1,1) to azure(0.5f,0.7f,1.0f)
 }
 
@@ -45,10 +51,6 @@ int main() {
 		}
 	stbi_write_jpg("..//output.jpg", x, y, 3, data, 100);
 	delete[] data;
-	vec3 a(1, 2, 3);
-	cout << dot(a, a) << endl;
-	vec3 b(4, 5, 6);
-	cout << a - b << endl;
 	//system("pause");
 	return 0;
 }
