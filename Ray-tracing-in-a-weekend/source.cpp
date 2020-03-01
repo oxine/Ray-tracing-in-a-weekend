@@ -29,6 +29,7 @@ vec3 color(const ray& r,hitable *world) {
 }
 
 int main() {
+	srand(0);
 	int x = 200;
 	int y = 100;
 	int s = 1;
