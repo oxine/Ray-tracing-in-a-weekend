@@ -31,7 +31,7 @@ vec3 color(const ray& r,hitable *world) {
 int main() {
 	int x = 200;
 	int y = 100;
-	int s = 10;
+	int s = 1;
 	hitable *list[2];
 	list[0] = new sphere(vec3(0, 0, -1), 0.5f);
 	list[1] = new sphere(vec3(0, -100.5f, -1), 100);
