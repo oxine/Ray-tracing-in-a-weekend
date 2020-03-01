@@ -1,7 +1,7 @@
 #include<math.h>
 #include<stdlib.h>
 #include<iostream>
-
+#pragma once
 class vec3 {
 public:
 	float e[3];
