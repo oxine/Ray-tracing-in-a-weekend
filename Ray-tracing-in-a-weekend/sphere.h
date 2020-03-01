@@ -4,10 +4,13 @@
 class sphere :public hitable {
 public:
 	sphere() {}
-	sphere(vec3 c, float r) :center(c), radius(r) {};
+	sphere(vec3 c, float r,material* m) :center(c), radius(r){
+		mat = m;
+	};
 	virtual bool hit(const ray& r, float t_min, float t_max, hit_record& rec)const;
 	vec3 center;
 	float radius;
+	
 };
 
 
@@ -26,6 +29,7 @@ bool sphere::hit(const ray& r, float t_min, float t_max, hit_record& rec)const {
 			rec.t = temp;
 			rec.p = r.Point_on_ray(rec.t);
 			rec.normal = (rec.p - center) / radius;
+			rec.hitObject = (hitable*)this;
 			return true;
 		}
 		temp = (-b + sqrt(b*b - a*c)) / a;// there's a range, so we should check both of them
@@ -33,6 +37,7 @@ bool sphere::hit(const ray& r, float t_min, float t_max, hit_record& rec)const {
 			rec.t = temp;
 			rec.p = r.Point_on_ray(rec.t);
 			rec.normal = (rec.p - center) / radius;
+			rec.hitObject = (hitable*)this;
 			return true;
 		}
 	}
