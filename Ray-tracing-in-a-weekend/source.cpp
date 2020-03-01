@@ -29,10 +29,11 @@ vec3 color(const ray& r,hitable *world) {
 }
 
 int main() {
-	srand(123);
+	//srand(0);if you do not reset the seed, you'll get the all same output
 	int x = 200;
 	int y = 100;
 	int s = 100;
+	float gamma = 1.8f;
 	hitable *list[2];
 	list[0] = new sphere(vec3(0, 0, -1), 0.5f);
 	list[1] = new sphere(vec3(0, -100.5f, -1), 100);
@@ -51,9 +52,9 @@ int main() {
 				col += color(r, world);//make each point a color
 			}
 			col /= float(s);
-			data[(y - j - 1)*x * 3 + i * 3] = unsigned char(255.99f * col[0]);
-			data[(y - j - 1)*x * 3 + i * 3 + 1] = unsigned char(255.99f * col[1]);
-			data[(y - j - 1)*x * 3 + i * 3 + 2] = unsigned char(255.99f * col[2]);
+			data[(y - j - 1)*x * 3 + i * 3] = unsigned char(255.99f * pow(col[0],1/ gamma));
+			data[(y - j - 1)*x * 3 + i * 3 + 1] = unsigned char(255.99f * pow(col[1], 1 / gamma));
+			data[(y - j - 1)*x * 3 + i * 3 + 2] = unsigned char(255.99f * pow(col[2], 1 / gamma));
 		}
 	stbi_write_jpg("..//output.jpg", x, y, 3, data, 100);
 	delete[] data;
