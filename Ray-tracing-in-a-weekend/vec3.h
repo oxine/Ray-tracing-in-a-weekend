@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include<math.h>
 #include<stdlib.h>
 #include<iostream>
@@ -16,8 +17,9 @@ public:
 	inline float g() const { return e[1]; }
 	inline float b() const { return e[2]; }
 
-	inline const vec3& operator+() { return *this; }
-	inline const vec3 operator-() { return vec3(-e[0], -e[1], -e[2]); }
+	inline const vec3& operator+() const{ return *this; }
+	inline const vec3 operator-() const{ return vec3(-e[0], -e[1], -e[2]); }
+
 	inline float operator[](int i) const { return e[i]; }
 	inline float& operator[](int i) { return e[i]; }
 	
@@ -41,6 +43,7 @@ public:
 
 	static vec3 one;
 	static vec3 zero;
+	static vec3 up;
 };
 
 

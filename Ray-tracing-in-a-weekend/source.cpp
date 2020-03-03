@@ -19,7 +19,8 @@ vec3 color(const ray& r,hitable *world,int depth) {
 			return attenuation*color(scattered, world,depth + 1);
 		}
 		else {
-			return  vec3(1,0,0);
+			//return  vec3(1,0,0);
+			return  vec3::zero;
 		}	
 	}
 	else {
@@ -29,20 +30,39 @@ vec3 color(const ray& r,hitable *world,int depth) {
 	}
 }
 
+hitable *random_scene() {
+	int n = 500;
+	hitable **list = new hitable*[n + 1];
+	list[0] = new sphere(vec3(0, -1000, 0), 1000, new lambertian(vec3(0.5, 0.5, 0.5)));
+	int i = 1;
+	for (int a = -11; a < 11; a++) {
+		for (int b = -11; b < 11; b++) {
+			float center(a+0.9)
+		}
+	}
+}
+
 int main() {
 	//srand(0);if you do not reset the seed, you'll get the all same output
 	int x = 200;
 	int y = 100;
 	int s = 100;
 	float gamma = 1.8f;
-	hitable *list[4];
+	hitable *list[5];
 	list[0] = new sphere(vec3(0, 0, -1), 0.5f, new lambertian(vec3(0.8f, 0.3f, 0.3f)));
 	list[1] = new sphere(vec3(0, -100.5f, -1), 100, new lambertian(vec3(0.8f, 0.8f, 0.0f)));
-	list[2] = new sphere(vec3(1, 0, -1), 0.5f, new metal(vec3(0.8f, 0.6f, 0.2f)));
-	list[3] = new sphere(vec3(-1, 0, -1), 0.5f, new metal(vec3(0.8f, 0.8f, 0.8f)));
-	hitable *world = new hitable_list(list, 4);
+	list[2] = new sphere(vec3(1, 0, -1), 0.5f, new metal(vec3(0.8f, 0.6f, 0.2f),0.3f));
+	list[3] = new sphere(vec3(-1, 0, -1), 0.5f, new dielectric(1.5f));
+	list[4] = new sphere(vec3(-1, 0, -1), -0.45f, new dielectric(1.5f));
+	hitable *world = new hitable_list(list, 5);
+
+
+
 	unsigned char* data = new unsigned char[x*y * 3];
-	camera cam;
+	vec3 lookfrom(3, 3, 2);
+	vec3 lookat(0, 0, -1);
+	float dist_to_focus = (lookfrom - lookat).length();
+	camera cam(lookfrom,lookat,vec3::up,20,x/(float)y,0,dist_to_focus);
 	for (int j = 0; j <y; j++)
 		for (int i = 0; i < x; i++)
 		{
