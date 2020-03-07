@@ -1,6 +1,6 @@
 #pragma once
 #include "ray.h"
-#include "hitable.h"
+#include "hittable.h"
 class material {
 public:
 	virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const = 0;
@@ -47,10 +47,10 @@ public:
 		albedo = a;
 	}
 	virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered)const {
-		vec3 reflected = reflect(r_in.Direction(), rec.normal);
+		vec3 reflected = reflect(r_in.direction(), rec.normal);
 		scattered = ray(rec.p, Normalize(reflected) + fuzz*random_in_unit_sphere());
 		attenuation = albedo;
-		return (dot(scattered.Direction(),rec.normal)>0);// why < 90d?
+		return (dot(scattered.direction(),rec.normal)>0);// why < 90d?
 	}
 	float fuzz;
 };
@@ -82,25 +82,25 @@ public:
 	float ref_idx;
 	virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered)const {
 		vec3 outward_normal;
-		vec3 reflected = reflect(r_in.Direction(), rec.normal);
+		vec3 reflected = reflect(r_in.direction(), rec.normal);
 		float ni_over_nt;
 		attenuation = vec3(1.0f, 1.0f, 1.0f);
 		vec3 refracted;
 		float reflect_prob;
 		float cosine;
 
-		if (dot(r_in.Direction(), rec.normal) > 0) {
+		if (dot(r_in.direction(), rec.normal) > 0) {
 			outward_normal = -rec.normal;
 			ni_over_nt = ref_idx;
-			cosine = ref_idx * dot(r_in.Direction(), rec.normal) / r_in.Direction().length();
+			cosine = ref_idx * dot(r_in.direction(), rec.normal) / r_in.direction().length();
 		}
 		else {
 			outward_normal = rec.normal;
 			ni_over_nt = 1.0/ref_idx;
-			cosine = - dot(r_in.Direction(), rec.normal) / r_in.Direction().length();
+			cosine = - dot(r_in.direction(), rec.normal) / r_in.direction().length();
 		}
 
-		if (refract(r_in.Direction(), outward_normal, ni_over_nt, refracted)) {
+		if (refract(r_in.direction(), outward_normal, ni_over_nt, refracted)) {
 			reflect_prob = schlick(cosine, ref_idx);
 		}
 		else {

@@ -6,7 +6,7 @@
 #include<ctime>
 #include "stb_image_write.h"
 #include "sphere.h"
-#include "hitable_list.h"
+#include "hittable_list.h"
 #include "camera.h"
 #include "material.h"
 
@@ -14,7 +14,7 @@ using namespace std;
 clock_t tstart, tend;
 
 
-vec3 color(const ray& r,hitable *world,int depth) {
+vec3 color(const ray& r,hittable *world,int depth) {
 	hit_record rec;
 	if (world->hit(r, 0.001f, FLT_MAX, rec)) {
 		ray scattered;
@@ -28,7 +28,7 @@ vec3 color(const ray& r,hitable *world,int depth) {
 		}	
 	}
 	else {
-		vec3 unit_direction = Normalize(r.Direction());
+		vec3 unit_direction = Normalize(r.direction());
 		float t = 0.5f*(unit_direction.y() + 1.0f);//a map as is mentioned above
 		return  (1.0f - t)*vec3::one + t*vec3(0.5f, 0.7f, 1.0f);//a simple liner lerp from white(1,1,1) to azure(0.5f,0.7f,1.0f)	
 	}
@@ -41,9 +41,9 @@ float random_float(float min, float max) {
 	return min + (max - min)* rand() / (float)(RAND_MAX + 1);
 }
 
-hitable *random_scene() {
+hittable *random_scene() {
 	int n = 500;
-	hitable **list = new hitable*[n + 1];
+	hittable **list = new hittable*[n + 1];
 	list[0] = new sphere(vec3(0, -1000, 0), 1000, new lambertian(vec3(0.5, 0.5, 0.5)));
 	int i = 1;
 	#pragma omp parallel for num_threads(4)
@@ -67,7 +67,7 @@ hitable *random_scene() {
 	list[i++] = new sphere(vec3(0, 1, 0), 1.0, new dielectric(1.5f));
 	list[i++] = new sphere(vec3(-4, 1, 0), 1.0, new lambertian(vec3(0.4f,0.2f,0.1f)));
 	list[i++] = new sphere(vec3(4, 1, 0), 1.0, new metal(vec3(0.7,0.6,0.5),0));
-	return new hitable_list(list, i);
+	return new hittable_list(list, i);
 }
 
 int main() {
@@ -77,14 +77,14 @@ int main() {
 	int y = 400;
 	int s = 100;
 	float gamma = 2.0f;
-	hitable *list[5];
+	hittable *list[5];
 	list[0] = new sphere(vec3(0, 0, -1), 0.5f, new lambertian(vec3(0.8f, 0.3f, 0.3f)));
 	list[1] = new sphere(vec3(0, -100.5f, -1), 100, new lambertian(vec3(0.8f, 0.8f, 0.0f)));
 	list[2] = new sphere(vec3(1, 0, -1), 0.5f, new metal(vec3(0.8f, 0.6f, 0.2f),0.3f));
 	list[3] = new sphere(vec3(-1, 0, -1), 0.5f, new dielectric(1.5f));
 	list[4] = new sphere(vec3(-1, 0, -1), -0.45f, new dielectric(1.5f));
-	//hitable *world = new hitable_list(random_scene(), 5);
-	hitable *world = random_scene();
+	//hittable *world = new hittable_list(random_scene(), 5);
+	hittable *world = random_scene();
 
 	unsigned char* data = new unsigned char[x*y * 3];
 	vec3 lookfrom(12, 1.5, 4);
@@ -101,7 +101,7 @@ int main() {
 				float u = (i + rand() / float(RAND_MAX + 1)) / (float)x;
 				float v = (j + rand() / float(RAND_MAX + 1)) / (float)y;
 				ray r = cam.get_ray(u, v);
-				//vec3 p = r.Point_on_ray(2.0f);
+				//vec3 p = r.point_on_ray(2.0f);
 				col += color(r, world, 0);//make each point a color, depth:reflect count
 			}
 			col /= float(s);

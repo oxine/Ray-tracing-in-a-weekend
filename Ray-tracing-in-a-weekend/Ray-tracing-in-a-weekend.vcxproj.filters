@@ -27,19 +27,22 @@
     <ClInclude Include="vec3.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="hitable.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="sphere.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="hitable_list.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="camera.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="material.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="aabb.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="hittable.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="hittable_list.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
