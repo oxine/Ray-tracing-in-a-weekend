@@ -45,6 +45,12 @@
     <ClInclude Include="hittable_list.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="bvh_node.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="perlin.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source.cpp">

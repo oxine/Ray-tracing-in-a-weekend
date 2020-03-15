@@ -1,10 +1,41 @@
 #pragma once
 #include "ray.h"
 #include "hittable.h"
+#include "perlin.h"
+class texture {
+public:
+	virtual vec3 value(float u, float v, const vec3& p) const = 0;
+};
+
+class constant_texture : public texture {
+public:
+	constant_texture() {}
+	constant_texture(vec3 c) : color(c) {}
+	virtual vec3 value(float u, float v, const vec3& p) const {
+		return color;
+	}
+	vec3 color;
+};
+
+class checker_texture : public texture {
+public:
+	checker_texture() {}
+	checker_texture(texture *t0, texture *t1) : even(t0), odd(t1) {}
+	virtual vec3 value(float u, float v, const vec3& p) const {
+		float sines = sin(10 * p.x()) * sin(10 * p.y()) * sin(10 * p.z());
+		if (sines < 0)
+			return odd->value(u, v, p);
+		else
+			return even->value(u, v, p);
+	}
+	texture *odd;
+	texture *even;
+};
+
+
 class material {
 public:
 	virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const = 0;
-	vec3 albedo;
 };
 
 vec3 random_in_unit_sphere() {
@@ -17,15 +48,14 @@ vec3 random_in_unit_sphere() {
 
 class lambertian : public material {
 public:
-	lambertian(const vec3& a){
-		albedo = a;
-	}
+	lambertian(texture* a):albedo(a){}
 	virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const {
 		vec3 target = rec.p + rec.normal + random_in_unit_sphere();
-		scattered = ray(rec.p, target - rec.p);
-		attenuation = albedo;
+		scattered = ray(rec.p, target - rec.p,r_in.time());
+		attenuation = albedo->value(0,0,rec.p);
 		return true;
 	}
+	texture* albedo;
 };
 
 
@@ -53,6 +83,7 @@ public:
 		return (dot(scattered.direction(),rec.normal)>0);// why < 90d?
 	}
 	float fuzz;
+	vec3 albedo;
 };
 
 bool refract(const vec3& v, const vec3& n, float ni_over_nt, vec3& refracted) {
@@ -117,4 +148,14 @@ public:
 		return true;
 	}
 
+};
+
+class noise_texture : public texture {
+public:
+	noise_texture(float s):scale(s) {}
+	virtual vec3 value(float u, float v, const vec3& p) const {
+		return vec3(1, 1, 1) * 0.5 * (1 + sin(scale*p.z() + 10 * noise.turb(p)));
+	}
+	perlin noise;
+	float scale;
 };
