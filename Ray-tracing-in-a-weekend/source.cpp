@@ -1,10 +1,12 @@
+#define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image.h"
+#include "stb_image_write.h"
 #include<iostream>
 #include<iomanip>
 #include <cstdlib>
 #include <omp.h>
 #include<ctime>
-#include "stb_image_write.h"
 #include "sphere.h"
 #include "hittable_list.h"
 #include "camera.h"
@@ -84,8 +86,11 @@ hittable *random_scene() {
 hittable *two_perlin_spheres() {
 	texture *pertext = new noise_texture(3);
 	hittable **list = new hittable*[2];
+	int nx, ny, nn;
+	unsigned char *tex_data = stbi_load("earthmap.jpg", &nx, &ny, &nn, 0);
+	material *mat = new lambertian(new image_texture(tex_data, nx, ny));
 	list[0] = new sphere(vec3(0, -1000, 0), 1000, new lambertian(pertext));
-	list[1] = new sphere(vec3(0, 2, 0), 2, new lambertian(pertext));
+	list[1] = new sphere(vec3(0, 2, 0), 2, mat);
 	return new hittable_list(list, 2);
 }
 
@@ -106,7 +111,7 @@ int main() {
 	
 	unsigned char* data = new unsigned char[x*y * 3];
 	vec3 lookfrom(13, 2, 3);
-	vec3 lookat(0, 0, 0);
+	vec3 lookat(0, 1, 0);
 	float aperture = 0.0;
 	float dist_to_focus = (lookfrom - lookat).length();
 	camera cam(

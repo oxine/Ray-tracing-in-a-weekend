@@ -9,6 +9,7 @@ inline float perlin_interp(vec3 c[2][2][2], float u, float v, float w) {
 	float vv = v*v*(3 - 2 * v);
 	float ww = w*w*(3 - 2 * w);
 	float accum = 0;
+	for (int i = 0; i < 2; i++)
 		for (int j = 0; j < 2; j++)
 			for (int k = 0; k < 2; k++) {
 				vec3 weight_v(u - i, v - j, w - k);
@@ -42,6 +43,9 @@ public:
 					];
 		return perlin_interp(c, u, v, w);
 	}
+
+
+
 	static vec3* randvec;
 	static int *perm_x;
 	static int *perm_y;

@@ -12,6 +12,13 @@ public:
 	material* mat;
 };
 
+void get_sphere_uv(const vec3& p, float& u, float& v) {
+	float phi = atan2(p.z(), p.x());
+	float theta = asin(p.y());
+	u = 1 - (phi + M_PI) / (2 * M_PI);
+	v = (theta + M_PI / 2) / M_PI;
+}
+
 /*
 line-sphere intersection:https://en.wikipedia.org/wiki/Line-sphere_intersection
 */
@@ -28,6 +35,10 @@ bool sphere::hit(const ray& r, float t_min, float t_max, hit_record& rec)const {
 			rec.p = r.point_on_ray(rec.t);
 			rec.normal = (rec.p - center) / radius;
 			rec.mat = mat;
+			float u, v;
+			get_sphere_uv((rec.p - center)/radius, u, v);
+			rec.u = u;
+			rec.v = v;
 			return true;
 		}
 		temp = (-b + sqrt(b*b - a*c)) / a;// there's a range, so we should check both of them
@@ -36,6 +47,10 @@ bool sphere::hit(const ray& r, float t_min, float t_max, hit_record& rec)const {
 			rec.p = r.point_on_ray(rec.t);
 			rec.normal = (rec.p - center) / radius;
 			rec.mat = mat;
+			float u, v;
+			get_sphere_uv((rec.p - center) / radius, u, v);
+			rec.u = u;
+			rec.v = v;
 			return true;
 		}
 	}
