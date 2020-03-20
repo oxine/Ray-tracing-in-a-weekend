@@ -1,6 +1,7 @@
 #pragma once
 #include "vec3.h"
-
+#include<memory>
+#include"flipnormal.h"
 float random_float() {
 	return rand() / (float)(RAND_MAX + 1);
 }
@@ -8,6 +9,7 @@ float random_float() {
 float random_float(float min,float max) {
 	return min + (max-min)*rand() / (float)(RAND_MAX + 1);
 }
+
 
 
 class ray {
@@ -32,3 +34,4 @@ public:
 		return _time;
 	}
 };
+
