@@ -46,7 +46,6 @@ hitable *random_scene() {
 	hitable **list = new hitable*[n + 1];
 	list[0] = new sphere(vec3(0, -1000, 0), 1000, new lambertian(vec3(0.5, 0.5, 0.5)));
 	int i = 1;
-	#pragma omp parallel for num_threads(4)
 	for (int a = -11; a < 11; a++) {
 		for (int b = -11; b < 11; b++) {
 			float choose_mat = random_float();
@@ -87,10 +86,15 @@ int main() {
 	hitable *world = random_scene();
 
 	unsigned char* data = new unsigned char[x*y * 3];
-	vec3 lookfrom(12, 1.5, 4);
-	vec3 lookat(0, 1 , 0);
-	float dist_to_focus = (lookfrom - lookat).length();
-	camera cam(lookfrom,lookat,vec3::up,30,x/(float)y,0,dist_to_focus);
+	vec3 lookfrom(13, 2, 3);
+	vec3 lookat(0, 0, 0);
+	float dist_to_focus = 10.0;
+	float aperture = 0.0;
+
+	camera cam(
+		lookfrom, lookat, vec3(0, 1, 0), 20, float(x) / float(y), aperture,
+		dist_to_focus
+	);
 
 	#pragma omp parallel for
 	for (int j = 0; j <y; j++)
