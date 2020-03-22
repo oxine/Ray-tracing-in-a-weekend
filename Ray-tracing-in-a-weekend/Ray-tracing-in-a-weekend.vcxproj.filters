@@ -60,6 +60,9 @@
     <ClInclude Include="flipnormal.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="volume.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source.cpp">

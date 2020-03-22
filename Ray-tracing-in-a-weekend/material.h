@@ -47,7 +47,7 @@ public:
 vec3 random_in_unit_sphere() {
 	vec3 p;
 	do {
-		p = vec3(rand() / float(RAND_MAX + 1), rand() / float(RAND_MAX + 1), rand() / float(RAND_MAX + 1));
+		p = 2.0*vec3(random_float (), random_float(), random_float()) - vec3(1, 1, 1);;
 	} while (p.squared_length() > 1.0);
 	return p;
 }
@@ -203,3 +203,19 @@ vec3 image_texture::value(float u, float v, const vec3& p) const {
 	float b = int(data[3 * i + 3 * nx*j + 2]) / 255.0;
 	return vec3(r, g, b);
 }
+
+class isotropic : public material {
+public:
+	isotropic(texture *a) : albedo(a) {}
+	virtual bool scatter(
+		const ray& r_in,
+		const hit_record& rec,
+		vec3& attenuation,
+		ray& scattered) const {
+
+		scattered = ray(rec.p, random_in_unit_sphere());
+		attenuation = albedo->value(rec.u, rec.v, rec.p);
+		return true;
+	}
+	texture *albedo;
+};

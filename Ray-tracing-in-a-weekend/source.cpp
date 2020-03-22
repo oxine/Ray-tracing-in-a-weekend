@@ -14,6 +14,7 @@
 #include "bvh_node.h"
 #include "aarect.h"
 #include "box.h"
+#include "volume.h"
 using namespace std;
 clock_t tstart, tend;
 
@@ -26,29 +27,6 @@ vec3 clampColor(vec3& c) {
 	if (c.e[2] > 1.0f)
 		c.e[2] = 1;
 	return c;
-}
-
-vec3 ray_color(const ray& r, const vec3& background, const hittable& world, int depth) {
-	hit_record rec;
-
-	// If we've exceeded the ray bounce limit, no more light is gathered.
-	if (depth <= 0)
-		return vec3(0, 0, 0);
-
-	// If the ray hits nothing, return the background color.
-	if (!world.hit(r, 0.001, FLT_MAX, rec))
-		return background;
-
-	ray scattered;
-	vec3 attenuation;
-	vec3 emitted = rec.mat->emitted(rec.u, rec.v, rec.p);
-	if (!rec.mat->scatter(r, rec, attenuation, scattered))
-		return clampColor(emitted) ;
-
-
-	
-
-	return clampColor(emitted + attenuation * ray_color(scattered, background, world, depth - 1));
 }
 
 vec3 color(const ray& r, hittable *world, int depth) {
@@ -141,33 +119,129 @@ hittable *cornell_box() {
 	material *red = new lambertian(new constant_texture(vec3(0.65, 0.05, 0.05)));
 	material *white = new lambertian(new constant_texture(vec3(0.73, 0.73, 0.73)));
 	material *green = new lambertian(new constant_texture(vec3(0.12, 0.45, 0.15)));
-	material *light = new diffuse_light(new constant_texture(vec3(15, 15, 15)));
+	material *light = new diffuse_light(new constant_texture(vec3(20, 20, 20)));
 
-	list[i++] = new flip_normals(new yz_rect(0, 555, 0, 555, 555, green));
-	list[i++] = new yz_rect(0, 555, 0, 555, 0, red);
+	list[i++] = new flip_normals(new yz_rect(0, 555, 0, 555, 555, red));
+	list[i++] = new yz_rect(0, 555, 0, 555, 0, green);
 	list[i++] = new xz_rect(213, 343, 227, 332, 554, light);
 	list[i++] = new flip_normals(new xz_rect(0, 555, 0, 555, 555, white));
 	list[i++] = new xz_rect(0, 555, 0, 555, 0, white);
 	list[i++] = new flip_normals(new xy_rect(0, 555, 0, 555, 555, white));
 
-	list[i++] = new translate(
+	texture *pertext = new noise_texture(0.5);
+	list[i++] = new sphere(vec3(220, 280, 300), 80, new lambertian(pertext));
+	/*list[i++] = new translate(
 		new rotate_y(new box(vec3(0, 0, 0), vec3(165, 165, 165), white), -18),
 		vec3(130, 0, 65)
 	);
 	list[i++] = new translate(
 		new rotate_y(new box(vec3(0, 0, 0), vec3(165, 330, 165), white), 15),
 		vec3(265, 0, 295)
-	);
+	);*/
 	return new hittable_list(list, i);
+}
+
+hittable *cornell_smoke() {
+	hittable **list = new hittable*[8];
+	int i = 0;
+	material *red = new lambertian(new constant_texture(vec3(0.65, 0.05, 0.05)));
+	material *white = new lambertian(new constant_texture(vec3(0.73, 0.73, 0.73)));
+	material *green = new lambertian(new constant_texture(vec3(0.12, 0.45, 0.15)));
+	material *light = new diffuse_light(new constant_texture(vec3(7, 7, 7)));
+
+	list[i++] = new flip_normals(new yz_rect(0, 555, 0, 555, 555, green));
+	list[i++] = new yz_rect(0, 555, 0, 555, 0, red);
+	list[i++] = new xz_rect(113, 443, 127, 432, 554, light);
+	list[i++] = new flip_normals(new xz_rect(0, 555, 0, 555, 555, white));
+	list[i++] = new xz_rect(0, 555, 0, 555, 0, white);
+	list[i++] = new flip_normals(new xy_rect(0, 555, 0, 555, 555, white));
+
+	hittable *b1 = new translate(
+		new rotate_y(new box(vec3(0, 0, 0), vec3(165, 165, 165), white), -18),
+		vec3(130, 0, 65));
+	hittable *b2 = new translate(
+		new rotate_y(new box(vec3(0, 0, 0), vec3(165, 330, 165), white), 15),
+		vec3(265, 0, 295));
+
+	list[i++] = new constant_medium(
+		b1, 0.01, new constant_texture(vec3(1.0, 1.0, 1.0)));
+	list[i++] = new constant_medium(
+		b2, 0.01, new constant_texture(vec3(0.0, 0.0, 0.0)));
+
+	return new hittable_list(list, i);
+}
+
+hittable *final() {
+	int nb = 20;
+	hittable **list = new hittable*[30];
+	hittable **boxlist = new hittable*[10000];
+	hittable **boxlist2 = new hittable*[10000];
+	material *white = new lambertian(new constant_texture(vec3(0.73, 0.73, 0.73)));
+	material *ground = new lambertian(new constant_texture(vec3(0.48, 0.83, 0.53)));
+	int b = 0;
+	for (int i = 0; i < nb; i++) {
+		for (int j = 0; j < nb; j++) {
+			float w = 100;
+			float x0 = -1000 + i*w;
+			float z0 = -1000 + j*w;
+			float y0 = 0;
+			float x1 = x0 + w;
+			float y1 = 100 * (random_float() + 0.01);
+			float z1 = z0 + w;
+			boxlist[b++] = new box(vec3(x0, y0, z0), vec3(x1, y1, z1), ground);
+		}
+	}
+	int l = 0;
+	list[l++] = new bvh_node(boxlist, b, 0, 1);
+	material *light = new diffuse_light(new constant_texture(vec3(7, 7, 7)));
+	list[l++] = new xz_rect(123, 423, 147, 412, 554, light);
+	vec3 center(400, 400, 200);
+	list[l++] = new moving_sphere(center, center + vec3(30, 0, 0),
+		0, 1, 50, new lambertian(new constant_texture(vec3(0.7, 0.3, 0.1))));
+	list[l++] = new sphere(vec3(260, 150, 45), 50, new dielectric(1.5));
+	list[l++] = new sphere(vec3(0, 150, 145), 50,
+		new metal(vec3(0.8, 0.8, 0.9), 10.0));
+	hittable *boundary = new sphere(vec3(360, 150, 145), 70, new dielectric(1.5));
+	list[l++] = boundary;
+	list[l++] = new constant_medium(boundary, 0.2,
+		new constant_texture(vec3(0.2, 0.4, 0.9)));
+	boundary = new sphere(vec3(0, 0, 0), 5000, new dielectric(1.5));
+	list[l++] = new constant_medium(boundary, 0.0001,
+		new constant_texture(vec3(1.0, 1.0, 1.0)));
+	int nx, ny, nn;
+	unsigned char *tex_data = stbi_load("earthmap.jpg", &nx, &ny, &nn, 0);
+	material *emat = new lambertian(new image_texture(tex_data, nx, ny));
+	list[l++] = new sphere(vec3(400, 200, 400), 100, emat);
+
+	texture *pertext = new noise_texture(10);
+	list[l++] = new sphere(vec3(220, 280, 300), 80, new lambertian(pertext));
+
+	int ns = 1000;
+	for (int j = 0; j < ns; j++) {
+		boxlist2[j] = new sphere(
+			vec3(165 * random_float(), 165 * random_float(), 165 * random_float()),
+			10, white);
+	}
+	list[l++] = new translate(new rotate_y(
+		new bvh_node(boxlist2, ns, 0.0, 1.0), 15), vec3(-100, 270, 395));
+	return new hittable_list(list, l);
+}
+
+inline vec3 de_nan(const vec3& c) {
+	vec3 temp = c;
+	if (!(temp[0] == temp[0])) temp[0] = 0;
+	if (!(temp[1] == temp[1])) temp[1] = 0;
+	if (!(temp[2] == temp[2])) temp[2] = 0;
+	return temp;
 }
 
 int main() {
 	const vec3 background(0,0,0);
 	tstart = clock();
 	srand(tstart);//if you do not reset the seed, you'll get the all same output
-	int x = 400;
-	int y = 200;
-	int s = 40;
+	int x = 800;
+	int y = 800;
+	int s = 10000;
 	float gamma = 2.0f;
 	hittable *list[5];
 	list[0] = new sphere(vec3(0, 0, -1), 0.5f, new lambertian(new constant_texture(vec3(0.8f, 0.3f, 0.3f))));
@@ -176,7 +250,7 @@ int main() {
 	list[3] = new sphere(vec3(-1, 0, -1), 0.5f, new dielectric(1.5f));
 	list[4] = new sphere(vec3(-1, 0, -1), -0.45f, new dielectric(1.5f));
 
-	hittable *world = cornell_box();
+	hittable *world = final();
 	
 	unsigned char* data = new unsigned char[x*y * 3];
 	vec3 lookfrom(278, 278, -800);
@@ -188,6 +262,15 @@ int main() {
 	camera cam(lookfrom, lookat, vec3(0, 1, 0), vfov, float(x) / float(y),
 		aperture, dist_to_focus, 0.0, 1.0);
 
+
+	//vec3 lookfrom(13, 2, 3);
+	//vec3 lookat(0, 0, 0);
+	//float dist_to_focus = 10.0;
+	//float aperture = 0.0;
+	//camera cam(lookfrom, lookat, vec3(0, 1, 0), 20, float(x) / float(y),
+	//	aperture, dist_to_focus, 0.0, 1.0);
+
+	float max=0;
 	#pragma omp parallel for
 	for (int j = 0; j <y; j++)
 		for (int i = 0; i < x; i++)
@@ -197,21 +280,34 @@ int main() {
 				float u = (i + rand() / float(RAND_MAX + 1)) / (float)x;
 				float v = (j + rand() / float(RAND_MAX + 1)) / (float)y;
 				ray r = cam.get_ray(u, v);
-				//vec3 p = r.point_on_ray(2.0f);
-				col += ray_color(r, vec3::zero,*world, 50);//make each point a color, depth:reflect count
+				col += de_nan(color(r,
+					world, 0));//make each point a color, depth:reflect count
 			}
 			col /= float(s);
-			data[(y - j - 1)*x * 3 + i * 3] = unsigned char(255.99f * pow(col[0], 1 / gamma));
-			data[(y - j - 1)*x * 3 + i * 3 + 1] = unsigned char(255.99f * pow(col[1], 1 / gamma));
-			data[(y - j - 1)*x * 3 + i * 3 + 2] = unsigned char(255.99f * pow(col[2], 1 / gamma));
+			col = vec3(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
+			//max = ffmax(max,ffmax(col[0], ffmax(col[1], col[2])));
+			clampColor(col);
+			data[(y - j - 1)*x * 3 + i * 3] = unsigned char(255.99f * col[0]);
+			data[(y - j - 1)*x * 3 + i * 3 + 1] = unsigned char(255.99f * col[1]);
+			data[(y - j - 1)*x * 3 + i * 3 + 2] = unsigned char(255.99f * col[2]);
 			cout << setprecision(2) << 100 * (x*j + i + 1) / (float)(y*x) << "%" << endl;
 		}
+
+//	if(max>1.0f)
+//#pragma omp parallel for
+//	for (int j = 0; j <y; j++)
+//		for (int i = 0; i < x; i++)
+//		{
+//			data[(y - j - 1)*x * 3 + i * 3] /= max;
+//			data[(y - j - 1)*x * 3 + i * 3 + 1] /= max;
+//			data[(y - j - 1)*x * 3 + i * 3 + 2] /=max;
+//		}
 	
 	tend = clock();
 	double endtime = (double)(tend - tstart) / CLOCKS_PER_SEC;
 	cout << "Total time:" << endtime << endl;
 	stbi_write_jpg("..//output.jpg", x, y, 3, data, 100);
 	delete[] data;
-	system("pause");
+	//system("pause");
 	return 0;
 }
