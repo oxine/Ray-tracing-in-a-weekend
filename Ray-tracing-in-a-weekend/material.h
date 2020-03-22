@@ -10,7 +10,7 @@ public:
 vec3 random_in_unit_sphere() {
 	vec3 p;
 	do {
-		p = vec3(rand() / float(RAND_MAX + 1), rand() / float(RAND_MAX + 1), rand() / float(RAND_MAX + 1));
+		p = 2.0f*vec3(rand() / float(RAND_MAX + 1), rand() / float(RAND_MAX + 1), rand() / float(RAND_MAX + 1)) - vec3::one;
 	} while (p.squared_length() > 1.0);
 	return p;
 }
