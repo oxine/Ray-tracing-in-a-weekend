@@ -1,120 +1,90 @@
-#pragma once
+//material.h
+#ifndef MATERIAL_H
+#define MATERIAL_H
+#include "rtweekend.h"
 #include "ray.h"
-#include "hitable.h"
+#include "hittable.h"
 class material {
 public:
-	virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const = 0;
-	vec3 albedo;
+	virtual bool scatter(
+		const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered
+	) const = 0;
 };
-
-vec3 random_in_unit_sphere() {
-	vec3 p;
-	do {
-		p = 2.0f*vec3(rand() / float(RAND_MAX + 1), rand() / float(RAND_MAX + 1), rand() / float(RAND_MAX + 1)) - vec3::one;
-	} while (p.squared_length() > 1.0);
-	return p;
-}
 
 class lambertian : public material {
 public:
-	lambertian(const vec3& a){
-		albedo = a;
-	}
-	virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const {
-		vec3 target = rec.p + rec.normal + random_in_unit_sphere();
-		scattered = ray(rec.p, target - rec.p);
+	lambertian(const vec3& a) : albedo(a) {}
+
+	virtual bool scatter(
+		const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered
+	) const {
+		vec3 scatter_direction = rec.normal + random_unit_vector();
+		scattered = ray(rec.p, scatter_direction);
 		attenuation = albedo;
 		return true;
 	}
-};
 
-
-
-vec3 reflect(const vec3& v, const vec3& n) {
-	return v - 2 * dot(v, n)*n;// the degree of v, n > 90
-}
-
-
-class metal :public material {
 public:
-	metal(const vec3& a,float f) {
-		if (f > 1.0)
-			fuzz = 1.0f;
-		else if (f < 0)
-			fuzz = 0;
-		else
-			fuzz = f;
-		albedo = a;
-	}
-	virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered)const {
-		vec3 reflected = reflect(r_in.Direction(), rec.normal);
-		scattered = ray(rec.p, Normalize(reflected) + fuzz*random_in_unit_sphere());
-		attenuation = albedo;
-		return (dot(scattered.Direction(),rec.normal)>0);// why < 90d?
-	}
-	float fuzz;
+	vec3 albedo;
 };
 
-bool refract(const vec3& v, const vec3& n, float ni_over_nt, vec3& refracted) {
-	vec3 unit_v = v.normalize();
-	float dt = dot(unit_v, n);//dt, or we say, cos theta
-	float square_cos_theta1 = 1.0f - ni_over_nt*ni_over_nt*(1 - dt*dt);
-	if (square_cos_theta1 > 0) {
-		refracted = ni_over_nt*(unit_v - n*dt) - n*sqrt(square_cos_theta1);
-		return true;
-	}
-	else
-		return false;//
-}
+class metal : public material {
+public:
+	metal(const vec3& a, double f) : albedo(a), fuzz(f < 1 ? f : 1) {}
 
-//Fresnel - Schlick approximation
-float schlick(float cosine, float ref_idx) {
-	float r0 = (1 - ref_idx) / (1 + ref_idx);
+	virtual bool scatter(
+		const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered
+	) const {
+		vec3 reflected = reflect(unit_vector(r_in.direction()), rec.normal);
+		scattered = ray(rec.p, reflected + fuzz*random_in_unit_sphere());
+		attenuation = albedo;
+		return (dot(scattered.direction(), rec.normal) > 0);//dot<0我们认为吸收
+	}
+
+public:
+	vec3 albedo;
+	double fuzz;
+};
+
+double schlick(double cosine, double ref_idx) {
+	auto r0 = (1 - ref_idx) / (1 + ref_idx);
 	r0 = r0*r0;
-	return r0 + (1 - r0)*pow((1-cosine),5);
+	return r0 + (1 - r0)*pow((1 - cosine), 5);
 }
 
 class dielectric : public material {
 public:
-	dielectric(float ri) :ref_idx(ri) {
-		
-	}
-	float ref_idx;
-	virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered)const {
-		vec3 outward_normal;
-		vec3 reflected = reflect(r_in.Direction(), rec.normal);
-		float ni_over_nt;
-		attenuation = vec3(1.0f, 1.0f, 1.0f);
-		vec3 refracted;
-		float reflect_prob;
-		float cosine;
+	dielectric(double ri) : ref_idx(ri) {}
 
-		if (dot(r_in.Direction(), rec.normal) > 0) {
-			outward_normal = -rec.normal;
-			ni_over_nt = ref_idx;
-			cosine = ref_idx * dot(r_in.Direction(), rec.normal) / r_in.Direction().length();
-		}
-		else {
-			outward_normal = rec.normal;
-			ni_over_nt = 1.0/ref_idx;
-			cosine = - dot(r_in.Direction(), rec.normal) / r_in.Direction().length();
-		}
+	virtual bool scatter(
+		const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered
+	) const {
+		attenuation = vec3(1.0, 1.0, 1.0);
+		double etai_over_etat = (rec.front_face) ? (1.0 / ref_idx) : (ref_idx);
 
-		if (refract(r_in.Direction(), outward_normal, ni_over_nt, refracted)) {
-			reflect_prob = schlick(cosine, ref_idx);
-		}
-		else {
-			reflect_prob = 1.0f;
-		}
-		
-
-		if (reflect_prob > (rand()/(float)(RAND_MAX))) {
+		vec3 unit_direction = unit_vector(r_in.direction());
+		double cos_theta = ffmin(dot(-unit_direction, rec.normal), 1.0);
+		double sin_theta = sqrt(1.0 - cos_theta*cos_theta);
+		if (etai_over_etat * sin_theta > 1.0) {
+			vec3 reflected = reflect(unit_direction, rec.normal);
 			scattered = ray(rec.p, reflected);
+			return true;
 		}
-		else {
-			scattered = ray(rec.p, refracted);
+		double reflect_prob = schlick(cos_theta, etai_over_etat);
+		if (random_double() < reflect_prob)
+		{
+			vec3 reflected = reflect(unit_direction, rec.normal);
+			scattered = ray(rec.p, reflected);
+			return true;
 		}
+		vec3 refracted = refract(unit_direction, rec.normal, etai_over_etat);
+		scattered = ray(rec.p, refracted);
 		return true;
 	}
 
+public:
+	double ref_idx;
 };
+
+
+#endif 

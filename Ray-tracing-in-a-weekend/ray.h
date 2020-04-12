@@ -21,4 +21,5 @@ public:
 	vec3 orig;
 	vec3 dir;
 };
+
 #endif
