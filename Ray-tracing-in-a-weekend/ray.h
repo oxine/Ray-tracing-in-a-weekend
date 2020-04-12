@@ -1,19 +1,24 @@
-#pragma once
+#ifndef RAY_H
+#define RAY_H
+
 #include "vec3.h"
+
 class ray {
-private:
-	vec3 origin;
-	vec3 dir;
 public:
 	ray() {}
-	ray(const vec3& origin, const vec3& dir) { this->origin = origin; this->dir = dir; }
-	vec3 Origin() const {
-		return origin;
+	ray(const vec3& origin, const vec3& direction)
+		: orig(origin), dir(direction)
+	{}
+
+	vec3 origin() const { return orig; }
+	vec3 direction() const { return dir; }
+
+	vec3 at(double t) const {
+		return orig + t*dir;
 	}
-	vec3 Direction()const {
-		return dir;
-	}
-	vec3 Point_on_ray(const float t) const{
-		return origin + dir * t;
-	}
+
+public:
+	vec3 orig;
+	vec3 dir;
 };
+#endif
