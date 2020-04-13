@@ -2,7 +2,6 @@
 #define VEC3_H
 
 #include <iostream>
-#include"rtweekend.h"
 
 class vec3 {
 public:

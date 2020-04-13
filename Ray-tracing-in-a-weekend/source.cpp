@@ -11,7 +11,7 @@
 #include "camera.h"
 #include "hittable_list.h"
 #include "sphere.h"
-
+#include "moving_sphere.h"
 
 
 using namespace std;
@@ -43,16 +43,17 @@ hittable_list random_scene() {
 		vec3(0, -1000, 0), 1000, make_shared<lambertian>(vec3(0.5, 0.5, 0.5))));
 
 	int i = 1;
-	for (int a = -11; a < 11; a++) {
-		for (int b = -11; b < 11; b++) {
+	for (int a = -10; a < 10; a++) {
+		for (int b = -10; b < 10; b++) {
 			auto choose_mat = random_double();
 			vec3 center(a + 0.9*random_double(), 0.2, b + 0.9*random_double());
-			if ((center - vec3(4, 0.2, 0)).length() > 0.9) {
+			if ((center - vec3(4, .2, 0)).length() > 0.9) {
 				if (choose_mat < 0.8) {
 					// diffuse
 					auto albedo = vec3::random() * vec3::random();
-					world.add(
-						make_shared<sphere>(center, 0.2, make_shared<lambertian>(albedo)));
+					world.add(make_shared<moving_sphere>(
+						center, center + vec3(0, random_double(0, 2), 0), 0.0, 1.0, 0.2,
+						make_shared<lambertian>(albedo)));
 				}
 				else if (choose_mat < 0.95) {
 					// metal
@@ -70,12 +71,10 @@ hittable_list random_scene() {
 	}
 
 	world.add(make_shared<sphere>(vec3(0, 1, 0), 1.0, make_shared<dielectric>(1.5)));
-
-	world.add(
-		make_shared<sphere>(vec3(-4, 1, 0), 1.0, make_shared<lambertian>(vec3(0.4, 0.2, 0.1))));
-
-	world.add(
-		make_shared<sphere>(vec3(4, 1, 0), 1.0, make_shared<metal>(vec3(0.7, 0.6, 0.5), 0.0)));
+	world.add(make_shared<sphere>(
+		vec3(-4, 1, 0), 1.0, make_shared<lambertian>(vec3(0.4, 0.2, 0.1))));
+	world.add(make_shared<sphere>(
+		vec3(4, 1, 0), 1.0, make_shared<metal>(vec3(0.7, 0.6, 0.5), 0.0)));
 
 	return world;
 }
@@ -86,9 +85,9 @@ int main() {
 	srand(tstart);//if you do not reset the seed, you'll get the all same output
 
 	
-	const int image_width = 200;
-	const int image_height = 100;
-	const int samples_per_pixel = 100;
+	const int image_width = 400;
+	const int image_height = 200;
+	const int samples_per_pixel = 20;
 	const int channel = 3;
 	const int max_depth = 50;
 	auto data = new unsigned char[image_width*image_height*channel];

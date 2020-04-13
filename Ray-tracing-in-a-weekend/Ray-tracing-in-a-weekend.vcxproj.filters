@@ -66,6 +66,9 @@
     <ClInclude Include="rtweekend.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="moving_sphere.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source.cpp">
