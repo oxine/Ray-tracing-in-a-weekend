@@ -2,7 +2,6 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 #include "rtweekend.h"
-#include "ray.h"
 #include "hittable.h"
 class material {
 public:
