@@ -3,6 +3,14 @@
 #define MATERIAL_H
 #include "rtweekend.h"
 #include "hittable.h"
+#include "texture.h"
+
+double schlick(double cosine, double ref_idx) {
+	auto r0 = (1 - ref_idx) / (1 + ref_idx);
+	r0 = r0*r0;
+	return r0 + (1 - r0)*pow((1 - cosine), 5);
+}
+
 class material {
 public:
 	virtual bool scatter(
@@ -11,19 +19,20 @@ public:
 };
 
 class lambertian : public material {
-    public:
-        lambertian(const vec3& a) : albedo(a) {}
+public:
+	lambertian(shared_ptr<texture> a) : albedo(a) {}
 
-        virtual bool scatter(
-            const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered
-        ) const {
-            vec3 scatter_direction = rec.normal + random_unit_vector();
-            scattered = ray(rec.p, scatter_direction, r_in.time());
-            attenuation = albedo;
-            return true;
-        }
+	virtual bool scatter(
+		const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered
+	) const {
+		vec3 scatter_direction = rec.normal + random_unit_vector();
+		scattered = ray(rec.p, scatter_direction, r_in.time());
+		attenuation = albedo->value(rec.u, rec.v, rec.p);
+		return true;
+	}
 
-        vec3 albedo;
+public:
+	shared_ptr<texture> albedo;
 };
 
 class metal : public material {
@@ -44,11 +53,7 @@ public:
 	double fuzz;
 };
 
-double schlick(double cosine, double ref_idx) {
-	auto r0 = (1 - ref_idx) / (1 + ref_idx);
-	r0 = r0*r0;
-	return r0 + (1 - r0)*pow((1 - cosine), 5);
-}
+
 
 class dielectric : public material {
 public:

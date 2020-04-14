@@ -36,9 +36,6 @@
     <ClInclude Include="material.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="aabb.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="aarect.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -49,9 +46,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="flipnormal.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="perlin.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="volume.h">
@@ -67,6 +61,18 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="moving_sphere.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="aabb.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="bvh.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="texture.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="perlin.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

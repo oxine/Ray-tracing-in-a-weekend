@@ -8,7 +8,7 @@ public:
 	camera(
 		vec3 lookfrom, vec3 lookat, vec3 vup,
 		double vfov, // top to bottom, in degrees
-		double aspect, double aperture, double focus_dist, double t0 = 0, double t1 = 0
+		double aspect, double aperture, double focus_dist, double t0 = 0, double t1 = 1
 	) {
 		origin = lookfrom;
 		lens_radius = aperture / 2;

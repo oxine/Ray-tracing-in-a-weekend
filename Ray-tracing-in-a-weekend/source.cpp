@@ -12,7 +12,7 @@
 #include "hittable_list.h"
 #include "sphere.h"
 #include "moving_sphere.h"
-
+#include "bvh.h"
 
 using namespace std;
 
@@ -39,8 +39,12 @@ vec3 ray_color(const ray& r, const hittable& world, int depth) {
 hittable_list random_scene() {
 	hittable_list world;
 
-	world.add(make_shared<sphere>(
-		vec3(0, -1000, 0), 1000, make_shared<lambertian>(vec3(0.5, 0.5, 0.5))));
+	auto checker = make_shared<checker_texture>(
+		make_shared<constant_texture>(vec3(0.2, 0.3, 0.1)),
+		make_shared<constant_texture>(vec3(0.9, 0.9, 0.9))
+		);
+
+	world.add(make_shared<sphere>(vec3(0, -1000, 0), 1000, make_shared<lambertian>(checker)));
 
 	int i = 1;
 	for (int a = -10; a < 10; a++) {
@@ -52,8 +56,8 @@ hittable_list random_scene() {
 					// diffuse
 					auto albedo = vec3::random() * vec3::random();
 					world.add(make_shared<moving_sphere>(
-						center, center + vec3(0, random_double(0, 2), 0), 0.0, 1.0, 0.2,
-						make_shared<lambertian>(albedo)));
+						center, center + vec3(0, random_double(0, 0.5), 0), 0.0, 1.0, 0.2,
+						make_shared<lambertian>(make_shared<constant_texture>(albedo))));
 				}
 				else if (choose_mat < 0.95) {
 					// metal
@@ -72,11 +76,21 @@ hittable_list random_scene() {
 
 	world.add(make_shared<sphere>(vec3(0, 1, 0), 1.0, make_shared<dielectric>(1.5)));
 	world.add(make_shared<sphere>(
-		vec3(-4, 1, 0), 1.0, make_shared<lambertian>(vec3(0.4, 0.2, 0.1))));
+		vec3(-4, 1, 0), 1.0, make_shared<lambertian>(make_shared<constant_texture>(vec3(0.4, 0.2, 0.1)))));
 	world.add(make_shared<sphere>(
 		vec3(4, 1, 0), 1.0, make_shared<metal>(vec3(0.7, 0.6, 0.5), 0.0)));
 
-	return world;
+	return static_cast<hittable_list>(make_shared<bvh_node>(world,0,1));
+}
+
+hittable_list two_perlin_spheres() {
+	hittable_list objects;
+
+	auto pertext = make_shared<noise_texture>(4);
+	objects.add(make_shared<sphere>(vec3(0, -1000, 0), 1000, make_shared<lambertian>(pertext)));
+	objects.add(make_shared<sphere>(vec3(0, 2, 0), 2, make_shared<lambertian>(pertext)));
+
+	return objects;
 }
 
 int main() {
@@ -97,7 +111,7 @@ int main() {
 	vec3 vertical(0.0, 2.0, 0.0);
 	vec3 origin(0.0, 0.0, 0.0);
 
-	auto world = random_scene();
+	auto world = two_perlin_spheres();
 
 	vec3 lookfrom(13, 2, 3);
 	vec3 lookat(0, 0, 0);
@@ -106,6 +120,7 @@ int main() {
 	auto dist_to_focus = 10.0;
 	auto aperture = 0.1;
 	camera cam(lookfrom, lookat, vup, 20, aspect_ratio, aperture, dist_to_focus);
+#pragma omp parallel for
 	for (int j = image_height - 1; j >= 0; --j) {
 		std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
 		for (int i = 0; i < image_width; ++i) {
