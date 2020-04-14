@@ -1,4 +1,5 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
 #include<iostream>
 #include<iomanip>
 #include <cstdlib>
@@ -6,6 +7,7 @@
 #include<ctime>
 #include <memory>
 #include "stb_image_write.h"
+#include "stb_image.h"
 #include "rtweekend.h"
 #include "material.h"
 #include "camera.h"
@@ -93,6 +95,17 @@ hittable_list two_perlin_spheres() {
 	return objects;
 }
 
+hittable_list earth() {
+	int nx, ny, nn;
+	unsigned char* texture_data = stbi_load("earthmap.jpg", &nx, &ny, &nn, 0);
+
+	auto earth_surface =
+		make_shared<lambertian>(make_shared<image_texture>(texture_data, nx, ny));
+	auto globe = make_shared<sphere>(vec3(0, 0, 0), 2, earth_surface);
+
+	return hittable_list(globe);
+}
+
 int main() {
 	clock_t tstart,tend;
 	tstart = clock();
@@ -111,7 +124,7 @@ int main() {
 	vec3 vertical(0.0, 2.0, 0.0);
 	vec3 origin(0.0, 0.0, 0.0);
 
-	auto world = two_perlin_spheres();
+	auto world = earth();
 
 	vec3 lookfrom(13, 2, 3);
 	vec3 lookat(0, 0, 0);
