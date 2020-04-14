@@ -5,14 +5,15 @@
 #include "hittable.h"
 #include "texture.h"
 
-double schlick(double cosine, double ref_idx) {
-	auto r0 = (1 - ref_idx) / (1 + ref_idx);
-	r0 = r0*r0;
-	return r0 + (1 - r0)*pow((1 - cosine), 5);
-}
+
 
 class material {
 public:
+public:
+	virtual vec3 emitted(double u, double v, const vec3& p) const {
+		return vec3(0, 0, 0);		
+	}
+
 	virtual bool scatter(
 		const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered
 	) const = 0;
@@ -59,6 +60,12 @@ class dielectric : public material {
 public:
 	dielectric(double ri) : ref_idx(ri) {}
 
+	static double schlick(double cosine, double ref_idx) {
+		auto r0 = (1 - ref_idx) / (1 + ref_idx);
+		r0 = r0*r0;
+		return r0 + (1 - r0)*pow((1 - cosine), 5);
+	}
+
 	virtual bool scatter(
 		const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered
 	) const {
@@ -85,9 +92,44 @@ public:
 		return true;
 	}
 
+
+
 public:
 	double ref_idx;
 };
 
+class diffuse_light : public material {
+public:
+	diffuse_light(shared_ptr<texture> a) : emit(a) {}
+
+	virtual bool scatter(
+		const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered
+	) const {
+		return false;
+	}
+
+	virtual vec3 emitted(double u, double v, const vec3& p) const {
+		return emit->value(u, v, p);
+	}
+
+public:
+	shared_ptr<texture> emit;
+};
+
+class isotropic : public material {
+public:
+	isotropic(shared_ptr<texture> a) : albedo(a) {}
+
+	virtual bool scatter(
+		const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered
+	) const {
+		scattered = ray(rec.p, random_in_unit_sphere(), r_in.time());
+		attenuation = albedo->value(rec.u, rec.v, rec.p);
+		return true;
+	}
+
+public:
+	shared_ptr<texture> albedo;
+};
 
 #endif 

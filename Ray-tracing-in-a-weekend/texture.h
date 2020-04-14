@@ -2,6 +2,8 @@
 #define TEXTURE_H
 #include "rtweekend.h"
 #include "perlin.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 class texture {
 public:
 	virtual vec3 value(double u, double v, const vec3& p) const = 0;
@@ -54,7 +56,10 @@ public:
 
 class image_texture : public texture {
 public:
-	image_texture() {}
+	image_texture(const char* src_url) {
+		int nn;
+		data = stbi_load("earthmap.jpg", &nx, &ny, &nn, 0);
+	}
 	image_texture(unsigned char *pixels, int A, int B)
 		: data(pixels), nx(A), ny(B) {}
 
